@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Subscription Details</title>
+    <!-- intl-tel-input CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/css/intlTelInput.css"
+      integrity="sha512-gxWow8Mo6q6pLa1XH/CcH8JyiSDEtiwJV78E+D+QP0EVasFs8wKXq16G8CLD4CJ2SnonHr4Lm/yY2fSI2+cbmw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <!-- Telegram WebApp Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary-color: #09afb8; /* Teal color */
+            --input-border-color: #ced4da;
+            --background-color: #f8f9fa;
+            --text-color: #212529;
+            --button-text-color: #ffffff;
+            --error-color: #dc3545; /* Red */
+            --success-color: #198754; /* Green */
+            --warning-color: #ffc107; /* Yellow */
+            --info-color: #0dcaf0; /* Light blue for info */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        #subscription-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        label .required-asterisk {
+            color: var(--error-color);
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(9, 175, 184, 0.25);
+        }
+
+        .payment-options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 5px;
+        }
+
+        .payment-option {
+            height: 40px;
+            width: auto;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease;
+        }
+         .payment-option:hover {
+             transform: scale(1.05);
+         }
+
+        .payment-option.selected {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(9, 175, 184, 0.6);
+            transform: scale(1.05);
+        }
+
+        button#submit {
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 12px 20px;
+            margin-top: 25px;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: var(--button-text-color);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button#submit:hover {
+            background-color: #078a91;
+        }
+
+        button#submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: var(--button-text-color);
+            animation: spin 1s ease-in-out infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: block;
+            min-height: 1em;
+        }
+        input.invalid {
+            border-color: var(--error-color);
+        }
+        input:invalid {
+            box-shadow: none;
+        }
+
+        #status-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+        #status-message.success {
+            background-color: #d1e7dd;
+            color: var(--success-color);
+            border: 1px solid #badbcc;
+            display: block;
+        }
+        #status-message.error {
+            background-color: #f8d7da;
+            color: var(--error-color);
+            border: 1px solid #f5c2c7;
+            display: block;
+        }
+        #status-message.warning {
+             background-color: #fff3cd;
+             color: #664d03;
+             border: 1px solid #ffecb5;
+             display: block;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="form-container" id="main-form-container">
+        <h2>Subscription Details</h2>
+        <p id="subscription-info">Loading subscription details...</p>
+
+            <div class="form-group">
+                <label>Select Payment Method<span class="required-asterisk">*</span></label>
+                <div class="payment-options-container">
+                    <img src="https://enstack.ph/assets/images/visa_mop.png" alt="Visa/Mastercard Credit Card" class="payment-option" data-payment-method="Credit Card">
+                    <img src="https://enstack.ph/assets/images/gcash_mop.png" alt="GCash" class="payment-option" data-payment-method="GCash">
+                    <img src="https://enstack.ph/assets/images/maya_mop.png" alt="Maya" class="payment-option" data-payment-method="Maya">
+                    <img src="https://enstack.ph/assets/images/qrph_mop.png" alt="QR Ph" class="payment-option" data-payment-method="QRph">
+                 </div>
+                 <span class="error-message" id="payment-error"></span>
+            </div>
+
+            <button type="button" id="submit">Submit</button>
+
+            <div id="status-message"></div>
+        </form>
+    </div>
+
+    <!-- jQuery -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+    ></script>
+    <!-- intl-tel-input JavaScript -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js"
+      referrerpolicy="no-referrer"
+    ></script>
+    <!-- utilsScript -->
+     <script
+       src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js"
+       referrerpolicy="no-referrer"
+     ></script>
+
+    <script>
+        // --- Attempt to get Telegram WebApp object ---
+        let tg = null; // Initialize tg as null
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            tg.expand(); // Expand if in Telegram environment
+            console.log("Telegram WebApp environment detected.");
+        } else {
+            console.log("Not running inside Telegram WebApp environment.");
+        }
+
+        // --- Global variables ---
+        let chatIdFromUrl = null;
+        let subscriptionTypeFromUrl = null;
+        let selectedPaymentMethod = null;
+
+        // --- Elements ---
+        const submitButton = document.getElementById('submit');
+        const originalButtonHTML = submitButton.innerHTML;
+        const statusMessageDiv = document.getElementById('status-message');
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        const subscriptionInfoP = document.getElementById('subscription-info');
+
+        // --- Error Span Elements ---
+        const paymentError = document.getElementById('payment-error');
+
+        // --- Variable to hold the intl-tel-input instance ---
+        let itiInstance = null;
+
+        // --- Helper function to display platform-specific alerts ---
+        function showPlatformAlert(message, title = 'Alert') { // title is mostly for showPopup fallback
+            if (tg && tg.showAlert) {
+                tg.showAlert(message);
+            } else if (tg && tg.showPopup) { // Fallback to showPopup if showAlert is not available but showPopup is (less likely)
+                tg.showPopup({
+                    title: title,
+                    message: message,
+                    buttons: [{ type: 'ok', text: 'OK' }]
+                });
+            } else {
+                alert(message); // Standard browser alert as the ultimate fallback
+                console.warn("Telegram WebApp alert/popup not available. Using browser alert for: " + message);
+            }
+        }
+
+
+        // --- Function to display parameter warnings/info ---
+        function checkAndDisplayParams() {
+            let paramsOk = true;
+            let initialWarningMsg = '';
+
+            try {
+                const queryParams = new URLSearchParams(window.location.search);
+                chatIdFromUrl = queryParams.get('chat_id');
+                subscriptionTypeFromUrl = queryParams.get('subscription_type');
+
+                if (!chatIdFromUrl) {
+                    console.warn("Telegram Chat ID not found in URL.");
+                    initialWarningMsg += 'User context missing. ';
+                    paramsOk = false;
+                } else {
+                     console.log("Telegram Chat ID found:", chatIdFromUrl);
+                }
+
+                if (!subscriptionTypeFromUrl) {
+                    console.warn("Subscription type not found in URL.");
+                     initialWarningMsg += 'Subscription type missing. ';
+                     paramsOk = false;
+                     subscriptionInfoP.textContent = 'Error: Subscription type not specified!';
+                     subscriptionInfoP.style.color = 'var(--error-color)';
+                } else {
+                     console.log("Subscription type found:", subscriptionTypeFromUrl);
+                     let displayText = subscriptionTypeFromUrl.replace('-', ' ');
+                     subscriptionInfoP.textContent = `Selected Plan: ${displayText}`;
+                     subscriptionInfoP.style.color = 'var(--primary-color)';
+                }
+
+                if (!paramsOk) {
+                    initialWarningMsg += 'Please access this page via the correct Telegram bot button.';
+                    statusMessageDiv.textContent = initialWarningMsg;
+                    statusMessageDiv.className = 'warning';
+                    // submitButton.disabled = true; // Optionally disable
+                } else {
+                     if (statusMessageDiv.classList.contains('warning')) {
+                        statusMessageDiv.style.display = 'none';
+                        statusMessageDiv.className = '';
+                     }
+                }
+
+            } catch (e) {
+                console.error("Error parsing URL parameters:", e);
+                statusMessageDiv.textContent = 'Error reading page parameters.';
+                statusMessageDiv.className = 'error';
+                subscriptionInfoP.textContent = 'Error loading page details!';
+                subscriptionInfoP.style.color = 'var(--error-color)';
+                submitButton.disabled = true;
+                paramsOk = false;
+            }
+            return paramsOk;
+        }
+
+        const paramsAreValid = checkAndDisplayParams();
+
+        // --- Use jQuery's ready function to ensure DOM is ready ---
+        $(document).ready(function() {
+            // Add click listeners for payment options
+            paymentOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    selectedPaymentMethod = this.dataset.paymentMethod;
+                    console.log("Selected Payment Method:", selectedPaymentMethod);
+                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    clearError(null, paymentError);
+                });
+            });
+
+             // Call tg.ready() if in Telegram environment AFTER setup
+             if (tg) {
+                 tg.ready();
+                 console.log("Telegram WebApp ready signal sent.");
+             }
+
+        }); // <-- End of $(document).ready()
+
+        // --- Clear Error Function ---
+        function clearError(inputElement, errorElement) {
+            if (errorElement) {
+                errorElement.textContent = '';
+            }
+            if (inputElement) {
+                inputElement.classList.remove('invalid');
+            }
+             if (statusMessageDiv.classList.contains('success') || statusMessageDiv.classList.contains('error')) {
+                 statusMessageDiv.style.display = 'none';
+                 statusMessageDiv.className = '';
+             }
+        }
+
+        // --- Validation Function ---
+        function validateForm() {
+            let isValid = true;
+            clearError(null, paymentError);
+
+            if (!chatIdFromUrl || !subscriptionTypeFromUrl) {
+                 showPlatformAlert("Error: Cannot submit form. User or subscription information is missing. Please access this page again via the correct button in your Telegram bot.", "Form Error");
+                 submitButton.disabled = true;
+                 return false;
+            }
+
+            function showError(inputElement, errorElement, message) {
+                isValid = false;
+                if (errorElement) {
+                    errorElement.textContent = message;
+                }
+                if (inputElement) {
+                    inputElement.classList.add('invalid');
+                }
+            }
+
+
+            if (!selectedPaymentMethod) {
+                showError(null, paymentError, 'Please select a payment method.');
+            }
+
+            if (!isValid) {
+                const firstErrorElement = document.querySelector('.error-message:not(:empty)');
+                const firstErrorMessage = firstErrorElement ? firstErrorElement.textContent : 'Please fill in all required fields correctly.';
+                showPlatformAlert(`Validation Error: ${firstErrorMessage}`, 'Validation Error');
+            }
+
+            return isValid;
+        }
+
+        // --- Submit Button Event Listener ---
+        submitButton.addEventListener('click', async () => {
+            if (statusMessageDiv.classList.contains('success') || statusMessageDiv.classList.contains('error')) {
+                 statusMessageDiv.style.display = 'none';
+                 statusMessageDiv.className = '';
+             }
+
+            if (!validateForm()) {
+                return;
+            }
+
+            submitButton.disabled = true;
+            submitButton.innerHTML = `<span class="spinner"></span> Processing...`;
+
+            const dataToSend = {
+                paymentMethod: selectedPaymentMethod,
+                subscriptionType: subscriptionTypeFromUrl,
+                telegram_chat_id: chatIdFromUrl
+            };
+
+            const webhookUrl = "https://n8n.kmonlinesolutions.com/webhook/payment-info-up";
+             if (!webhookUrl || webhookUrl === "YOUR_N8N_WEBHOOK_URL_HERE") { // Keep this check simple
+                 showPlatformAlert('Configuration Error: Webhook URL is not set correctly in the HTML code.', 'Configuration Error');
+                 submitButton.disabled = false;
+                 submitButton.innerHTML = originalButtonHTML;
+                 return;
+            }
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(dataToSend),
+                });
+
+                // Reset button before showing feedback
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonHTML;
+
+                if (response.ok) {
+                    console.log("Submission successful");
+                    statusMessageDiv.textContent = 'Your details have been submitted successfully!';
+                    statusMessageDiv.className = 'success';
+                    
+                    const successMessage = 'Your details have been successfully submitted. You will receive further instructions shortly.';
+                    const successTitle = 'Subscription Details Submitted';
+                    const closeWebAppCallback = function() {
+                        if (tg) {
+                            console.log("Alert/Popup OK'd, closing WebApp.");
+                            tg.close();
+                        }
+                    };
+
+                    if (tg && tg.showPopup) {
+                        console.log("Showing Telegram popup message for success.");
+                        tg.showPopup({
+                            title: successTitle,
+                            message: successMessage,
+                            buttons: [{ type: 'ok', text: 'OK' }]
+                        }, closeWebAppCallback);
+                    } else { // Fallback for general alert (includes tg.showAlert or browser alert)
+                        showPlatformAlert(successMessage, successTitle); // No callback needed here as per simpler showPlatformAlert
+                        // If tg is available, close after a delay
+                        if (tg) {
+                           setTimeout(closeWebAppCallback, 1000); // Keep a delay for visibility
+                        }
+                    }
+
+                } else {
+                    const responseText = await response.text();
+                    console.error("Webhook response error:", response.status, responseText);
+                    const displayError = `Failed to submit details (Status: ${response.status}). Please try again later. ${responseText ? '('+responseText.substring(0, 100)+')' : ''}`;
+                    statusMessageDiv.textContent = displayError;
+                    statusMessageDiv.className = 'error';
+                    
+                    const errorTitle = 'Submission Error';
+                    const errorMessagePopup = 'There was a problem submitting your details. Please try again later.';
+
+                    if (tg && tg.showPopup) {
+                        tg.showPopup({
+                            title: errorTitle,
+                            message: errorMessagePopup,
+                            buttons: [{ type: 'ok', text: 'OK' }]
+                        });
+                    } else {
+                        showPlatformAlert(errorMessagePopup, errorTitle);
+                    }
+                }
+            } catch (error) {
+                console.error("Error sending data:", error);
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonHTML;
+                const networkErrorMsg = 'Network Error: Could not connect to the server. Check your connection and try again.';
+                statusMessageDiv.textContent = networkErrorMsg;
+                statusMessageDiv.className = 'error';
+                
+                const networkErrorTitle = 'Network Error';
+                if (tg && tg.showPopup) {
+                    tg.showPopup({
+                        title: networkErrorTitle,
+                        message: networkErrorMsg,
+                        buttons: [{ type: 'ok', text: 'OK' }]
+                    });
+                } else {
+                    showPlatformAlert(networkErrorMsg, networkErrorTitle);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
