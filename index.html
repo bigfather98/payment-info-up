@@ -16,7 +16,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --primary-color: #09afb8; /* Teal color */
+            --primary-color: #14a800; /* Bright Green */
             --input-border-color: #ced4da;
             --background-color: #f8f9fa;
             --text-color: #212529;
@@ -24,7 +24,7 @@
             --error-color: #dc3545; /* Red */
             --success-color: #198754; /* Green */
             --warning-color: #ffc107; /* Yellow */
-            --info-color: #0dcaf0; /* Light blue for info */
+            --info-color: #14a800; /* Light Purple for info */
         }
 
         * {
@@ -67,6 +67,14 @@
             color: var(--text-color);
         }
 
+        h3 {
+            font-size: 0.72rem;
+            font-weight: 400;
+            margin-bottom: 10px;
+            text-align: left;
+            color: var(--text-color);
+        }
+
         #subscription-info {
             text-align: center;
             margin-bottom: 20px;
@@ -95,7 +103,7 @@
         input:focus {
             border-color: var(--primary-color);
             outline: none;
-            box-shadow: 0 0 0 2px rgba(9, 175, 184, 0.25);
+            box-shadow: 0 0 0 2px rgba(20, 168, 0, 0.25);
         }
 
         .payment-options-container {
@@ -119,7 +127,7 @@
 
         .payment-option.selected {
             border-color: var(--primary-color);
-            box-shadow: 0 0 8px rgba(9, 175, 184, 0.6);
+            box-shadow: 0 0 8px rgba(20, 168, 0, 0.6);
             transform: scale(1.05);
         }
 
@@ -142,7 +150,7 @@
         }
 
         button#submit:hover {
-            background-color: #078a91;
+            background-color: #0d7000; /* Darker Green */
         }
 
         button#submit:disabled {
@@ -224,9 +232,9 @@
                  </div>
                  <span class="error-message" id="payment-error"></span>
             </div>
-
+        <h3>* If you are not from the Philippines, please select Credit Card payment<h3>
+        <h3>* Visa, Mastercard, and JCB is accepted<h3></h3>
             <button type="button" id="submit">Submit</button>
-
             <div id="status-message"></div>
         </form>
     </div>
