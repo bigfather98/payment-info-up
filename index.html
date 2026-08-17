@@ -131,6 +131,70 @@
             transform: scale(1.05);
         }
 
+        .payment-option.unavailable {
+            filter: grayscale(100%);
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .payment-option.unavailable:hover,
+        .payment-option.unavailable.selected {
+            transform: none;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            left: 50%;
+            transform: translateX(-50%) translateY(16px) scale(0.96);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: rgba(33, 37, 41, 0.85);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            color: #ffffff;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            font-size: 0.875rem;
+            line-height: 1.4;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0.25s;
+            z-index: 9999;
+            max-width: calc(100% - 32px);
+            text-align: left;
+        }
+
+        #toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0) scale(1);
+        }
+
+        #toast .toast-icon {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--warning-color);
+            color: #212529;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #toast {
+                transition: opacity 0.15s ease, visibility 0.15s;
+            }
+        }
+
         button#submit {
             font-size: 1.1rem;
             font-weight: 500;
@@ -226,8 +290,8 @@
                 <label>Select Payment Method<span class="required-asterisk">*</span></label>
                 <div class="payment-options-container">
                     <img src="https://enstack.ph/assets/images/visa_mop.png" alt="Visa/Mastercard Credit Card" class="payment-option" data-payment-method="Credit Card">
-                    <img src="https://enstack.ph/assets/images/gcash_mop.png" alt="GCash" class="payment-option" data-payment-method="GCash">
-                    <img src="https://enstack.ph/assets/images/maya_mop.png" alt="Maya" class="payment-option" data-payment-method="Maya">
+                    <img src="https://enstack.ph/assets/images/gcash_mop.png" alt="GCash" class="payment-option unavailable" data-payment-method="GCash">
+                    <img src="https://enstack.ph/assets/images/maya_mop.png" alt="Maya" class="payment-option unavailable" data-payment-method="Maya">
                     <img src="https://enstack.ph/assets/images/qrph_mop.png" alt="QR Ph" class="payment-option" data-payment-method="QRph">
                  </div>
                  <span class="error-message" id="payment-error"></span>
@@ -237,6 +301,13 @@
             <button type="button" id="submit">Submit</button>
             <div id="status-message"></div>
         </form>
+    </div>
+
+    <div id="toast" role="alert" aria-live="polite">
+        <span class="toast-icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </span>
+        <span id="toast-message"></span>
     </div>
 
     <!-- jQuery -->
@@ -360,12 +431,36 @@
 
         const paramsAreValid = checkAndDisplayParams();
 
+        // --- Toast notification ---
+        const toastElement = document.getElementById('toast');
+        const toastMessageElement = document.getElementById('toast-message');
+        let toastTimeout = null;
+
+        function showToast(message) {
+            toastMessageElement.textContent = message;
+            toastElement.classList.add('show');
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+            toastTimeout = setTimeout(() => {
+                toastElement.classList.remove('show');
+                toastTimeout = null;
+            }, 3000);
+        }
+
         // --- Use jQuery's ready function to ensure DOM is ready ---
         $(document).ready(function() {
             // Add click listeners for payment options
             paymentOptions.forEach(option => {
                 option.addEventListener('click', function() {
-                    selectedPaymentMethod = this.dataset.paymentMethod;
+                    const methodName = this.dataset.paymentMethod;
+
+                    if (this.classList.contains('unavailable')) {
+                        showToast(`${methodName} is currently not available. Please choose another payment method.`);
+                        return;
+                    }
+
+                    selectedPaymentMethod = methodName;
                     console.log("Selected Payment Method:", selectedPaymentMethod);
                     paymentOptions.forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
